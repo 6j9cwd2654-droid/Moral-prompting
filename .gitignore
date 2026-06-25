@@ -1,0 +1,10 @@
+# Generierte Output-Dateien
+Scoring_Ergebnisse.xlsx
+~$Scoring_Ergebnisse.xlsx
+Embedding_Scores.xlsx
+
+# Mac System-Dateien
+.DS_Store
+
+# Embedding Model
+german.model
