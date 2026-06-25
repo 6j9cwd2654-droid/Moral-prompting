@@ -88,4 +88,4 @@ for dim in dims:
     data[f'emb_{dim.lower()}'] = results.apply(lambda x: x[dim])
 
 # Ergebnisse speichern
-#data.to_excel('Embedding_Scores.xlsx', index=False)
+data.to_excel('Embedding_Scores.xlsx', index=False)

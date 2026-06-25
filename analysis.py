@@ -2,37 +2,41 @@ import pandas as pd
 from scipy import stats
 
 #Einlesen
-data = pd.read_excel('Scoring_Ergebnisse.xlsx')
-data = pd.read_excel('MFQ_Ergebnisse.xlsx')
+data_countscore = pd.read_excel('Scoring_Ergebnisse.xlsx')
+data_MFQ = pd.read_excel('MFQ_Ergebnisse.xlsx') #existiert noch nicht, Platzhalter
+data_embscore = pd.read_excel('Embedding_Scores.xlsx')
 
-# MFQ Platzhalter (später mit SoSci-Daten ersetzen)
-data['mfq_care']      = None
-data['mfq_fairness']  = None
-data['mfq_loyalty']   = None
-data['mfq_authority'] = None
-data['mfq_purity']    = None
+#Zusammenführungen
+data_counting= pd.merge(data_countscore, data_MFQ, on='VP', how='inner')
+data_embedding = pd.merge(data_embscore, data_MFQ, on='VP', how='inner')
 
 # Z-Normalisierung der Häufigkeitsvektoren
-score_cols = ['score_care', 'score_fairness', 'score_loyalty', 'score_authority', 'score_purity']
-for col in score_cols:
-    data[col + '_z'] = stats.zscore(data[col])
+rawscore_cols = ['score_care', 'score_fairness', 'score_loyalty', 'score_authority', 'score_purity']
+for col in rawscore_cols:
+    data_counting[col + '_z'] = stats.zscore(data_counting[col])
 
-# Korrelation pro VP (Platzhalter - erst wenn MFQ-Daten vorhanden)
-
+# Spaltennamen für die Korrelation
 mfq_cols = ['mfq_care', 'mfq_fairness', 'mfq_loyalty', 'mfq_authority', 'mfq_purity']
 score_z_cols = ['score_care_z', 'score_fairness_z', 'score_loyalty_z', 'score_authority_z', 'score_purity_z']
+emb_cols = ['emb_care', 'emb_fairness', 'emb_loyalty', 'emb_authority', 'emb_purity']
 
-def correlate_vectors(row):
+# generische Funktion zur Berechnung der Korrelation zwischen zwei Vektoren
+def correlate_vectors(row, score_cols):
     mfq_vec   = row[mfq_cols].values.astype(float)
-    score_vec = row[score_z_cols].values.astype(float)
+    score_vec = row[score_cols].values.astype(float)
     r, p = stats.pearsonr(mfq_vec, score_vec)
     return r
 
-data['pearson_r'] = data.apply(correlate_vectors, axis=1)
+# Aufruf für counting und embedding
+data_counting['pearson_r'] = data_counting.apply(lambda row: correlate_vectors(row, score_z_cols), axis=1)
+data_embedding['pearson_r'] = data_embedding.apply(lambda row: correlate_vectors(row, emb_cols), axis=1)
 
-#Korrelation mitteln
-mean_r = data['pearson_r'].mean()
-print(f'Mean Pearson r across participants: {mean_r}')
+#Korrelationen mitteln
+mean_r_counting = data_counting['pearson_r'].mean()
+mean_r_embedding = data_embedding['pearson_r'].mean()
+print(f'Mean Pearson r for counting: {mean_r_counting}')
+print(f'Mean Pearson r for embedding: {mean_r_embedding}')
 
 #Ergebnisse speichern
-data.to_excel('Wordcounting_Analysis.xlsx', index=False)
+data_counting.to_excel('Wordcounting_Analysis.xlsx', index=False)
+data_embedding.to_excel('Embedding_Analysis.xlsx', index=False)
