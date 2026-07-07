@@ -1,7 +1,5 @@
-# Generierte Output-Dateien
-Scoring_Ergebnisse.xlsx
-~$Scoring_Ergebnisse.xlsx
-Embedding_Scores.xlsx
+# virtual environment
+venv/
 
 # Mac System-Dateien
 .DS_Store
