@@ -11,7 +11,7 @@ Themen befragen.
 | `Word_count.py` | MFD-basiertes Word Counting: zählt Häufigkeiten von Dictionary-Termen pro VP und Dimension |
 | `wordembedding.py` | Word2Vec-basiertes Embedding: berechnet Cosine Similarity zwischen Prompt-Centroids und Dictionary-Centroids |
 | `analysis.py` | Statistische Analyse: Pearson-Korrelation pro VP und Mittelung der r-Werte für beide Methoden |
-| `mfd_de_referenz.xlsx` | Deutsches Moral Foundations Dictionary (Bos & Minihold 2022) |
+| `mfd_de_referenz.xlsx` | Deutsches Moral Foundations Dictionary (Bos & Minihold, 2022) |
 | `Prompts.xlsx` | Prompt-Daten der Pilot Teilnehmenden (VP, Aggregiert) | später SoSci Survey Export |
 
 
@@ -19,13 +19,20 @@ Themen befragen.
 
 | Datei | Beschreibung | Quelle |
 |-------|-------------|--------|
-| `german.model` | Vortrainiertes deutsches Word2Vec Modell | [devmount.github.io/GermanWordEmbeddings](https://devmount.github.io/GermanWordEmbeddings/) |
+| `german.model` | Vortrainiertes deutsches Word2Vec Modell | siehe Installation
 | `MFQ_Ergebnisse.xlsx` | MFQ-Scores der Teilnehmenden pro Dimension | SoSci Survey Export |
+| `Prompts.xlsx` | Prompt-Daten der Teilnehmenden (VP, Aggregiert) | SoSci Survey Export
 
 ## Installation
 
 ```bash
-pip install pandas openpyxl numpy gensim scipy
+pip requirements.txt
+```
+
+Deutsches Word2Vec Modell herunterladen (devmount):
+
+```bash
+curl -L "https://cloud.devmount.de/d2bc5672c523b086/german.model" -o german.model
 ```
 
 ## Ausführungsreihenfolge
@@ -38,7 +45,7 @@ python wordcount_analysis.py  # → Wordcounting_Analysis.xlsx, Embedding_Analys
 
 ## Dimensionen
 
-Die Analyse umfasst 5 Moral Foundations (MFQ, Haidt & Joseph):
+Die Analyse umfasst 5 Moral Foundations (MFQ, Haidt & Joseph, 2004; siehe Literatur):
 
 - **Care/Harm** — Fürsorge, Schutz, Schaden
 - **Fairness/Cheating** — Gerechtigkeit, Gleichheit, Betrug
@@ -62,3 +69,10 @@ alle VPs gemittelt.
 - Umlaute werden vor dem Modell-Lookup normalisiert (ä→ae, ö→oe, ü→ue, ß→ss), da das devmount-Modell mit dieser Schreibweise trainiert wurde
 - Coverage des Word2Vec-Modells liegt bei 50-72% pro Dimension aufgrund von Wildcard-Stämmen — Überlegen das Modell zu wechseln
 - `MFQ_Ergebnisse.xlsx` ist noch ein Platzhalter bis die SoSci-Daten vorliegen
+
+## Literatur
+
+Haidt, J., & Joseph, C. (2004). Intuitive ethics: How innately prepared 
+intuitions generate culturally variable virtues. *Daedalus*, 133(4), 55–66. http://www.jstor.org/stable/20027945
+
+Bos, L. and Minihold, S. (2022), The Ideological Predictors of Moral Appeals by European Political Elites; An Exploration of the Use of Moral Rhetoric in Multiparty Systems. Political Psychology, 43: 45-63. https://doi.org/10.1111/pops.12739
