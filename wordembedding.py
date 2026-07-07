@@ -3,13 +3,15 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from gensim.utils import tokenize
 from scipy.spatial.distance import cosine
+from dictionary_utils import load_dictionaries, DIMS
 
 # Modell laden
 MODEL_PATH = 'german.model'
 model = KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
 
+
+
 # Einlesen
-dict_df = pd.read_excel('mfd_de_referenz.xlsx')
 data = pd.read_excel('Prompts.xlsx') # später mit SoSci-Daten ersetzen
 data = data[['VP', 'Aggregiert']]
 
@@ -22,11 +24,8 @@ def normalize_umlauts(text):
     return text
 
 # Dictionaries bauen (Sternchen entfernen)
-dims = ['Care', 'Fairness', 'Loyalty', 'Authority', 'Purity']
-dictionaries = {}
-for dim in dims:
-    terms = dict_df[dict_df[dim] == 1]['match_pattern'].tolist()
-    dictionaries[dim] = [t.rstrip('*') for t in terms]
+raw_dictionaries = load_dictionaries()
+dictionaries = {dim: [t.rstrip('*') for t in raw_dictionaries[dim]] for dim in DIMS}
 
 # generische Centroid - Berechnung
 def calculate_centroid(items, model):
@@ -44,37 +43,16 @@ def calculate_centroid(items, model):
 
 # Aufruf der Centroid-Berechnung für die Dictionaries
 dict_centroids = {}
-for dim in dims:
+for dim in DIMS:
     dict_centroids[dim] = calculate_centroid(dictionaries[dim], model)
-
-# Coverage-Diagnostik: Wie viele Dictionary-Wörter sind im Modell?
-print("=== Coverage pro Dimension ===")
-for dim in dims:
-    terms = dictionaries[dim]
-    gefunden = []
-    fehlend = []
-    for term in terms:
-        normalized = normalize_umlauts(term.lower())
-        tokens = list(tokenize(normalized, lower=True))
-        # ein Term gilt als gefunden wenn mindestens ein Token im Modell ist
-        if any(tok in model for tok in tokens):
-            gefunden.append(term)
-        else:
-            fehlend.append(term)
-    total = len(terms)
-    n_gefunden = len(gefunden)
-    prozent = (n_gefunden / total * 100) if total > 0 else 0
-    print(f"{dim}: {n_gefunden}/{total} gefunden ({prozent:.1f}%)")
-    print(f"   Fehlend: {', '.join(fehlend[:10])}{' ...' if len(fehlend) > 10 else ''}")
-    print()
 
 # Cosine Similarity zwischen Text-Centroid und Dictionary-Centroids
 def score_embedding(text, model, dict_centroids):
     text_centroid = calculate_centroid(text, model)
     if text_centroid is None:
-        return {dim: None for dim in dims}
+        return {dim: None for dim in DIMS}
     scores = {}
-    for dim in dims:
+    for dim in DIMS:
         if dict_centroids[dim] is not None:
             # cosine distance gibt 1 - similarity, daher 1 - cosine(...)
             scores[dim] = 1 - cosine(text_centroid, dict_centroids[dim])
@@ -84,7 +62,7 @@ def score_embedding(text, model, dict_centroids):
 
 # Scores pro VP berechnen
 results = data['Aggregiert'].apply(lambda t: score_embedding(t, model, dict_centroids))
-for dim in dims:
+for dim in DIMS:
     data[f'emb_{dim.lower()}'] = results.apply(lambda x: x[dim])
 
 # Ergebnisse speichern

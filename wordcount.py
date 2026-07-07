@@ -1,19 +1,21 @@
 
 import pandas as pd
 import re
+from dictionary_utils import load_dictionaries, DIMS
+
 
 
 # Einlesen
-dict_df = pd.read_excel('mfd_de_referenz.xlsx', sheet_name='MFD_DE')
 data = pd.read_excel('Prompts.xlsx')
 data = data[['VP', 'Aggregiert']]
 
-# Dictionaries bauen
-dict_care      = dict_df[dict_df['Care'] == 1]['match_pattern'].tolist()
-dict_fairness  = dict_df[dict_df['Fairness'] == 1]['match_pattern'].tolist()
-dict_loyalty   = dict_df[dict_df['Loyalty'] == 1]['match_pattern'].tolist()
-dict_authority = dict_df[dict_df['Authority'] == 1]['match_pattern'].tolist()
-dict_purity    = dict_df[dict_df['Purity'] == 1]['match_pattern'].tolist()
+# Dictionaries laden
+dictionaries = load_dictionaries()
+dict_care      = dictionaries['Care']
+dict_fairness  = dictionaries['Fairness']
+dict_loyalty   = dictionaries['Loyalty']
+dict_authority = dictionaries['Authority']
+dict_purity    = dictionaries['Purity']
 
 #Alle Umlaute in den Dictionaries durch ae, oe, ue ersetzen
 def normalize_umlaute(text):
@@ -23,13 +25,18 @@ def normalize_umlaute(text):
     text = text.replace('ß', 'ss')
     return text
 
+# Preprocessing
+def preprocess_text(text):
+    text = text.lower()
+    text = normalize_umlaute(text)
+    text = re.sub(r'[^\w\s]', '', text)  
+    return text.split()
+
 # Generische Scoring-Funktion
 def score_dict(text, dictionary):
     if pd.isna(text):
         raise ValueError("Text is null")
-    text = text.lower()
-    text = normalize_umlaute(text)
-    words = re.sub(r'[^\w\s]', '', text).split()
+    words = preprocess_text(text)
     count = 0
     for pattern in dictionary:
         if pattern.endswith('*'):
@@ -43,9 +50,7 @@ def score_dict(text, dictionary):
 def get_matches(text, dictionary):
     if pd.isna(text):
         return ''
-    text = text.lower()
-    text = normalize_umlaute(text)
-    words = re.sub(r'[^\w\s]', '', text).split()
+    words = preprocess_text(text)
     matches = []
     for pattern in dictionary:
         if pattern.endswith('*'):
