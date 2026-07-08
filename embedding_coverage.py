@@ -1,33 +1,34 @@
 import numpy as np
 from gensim.models import KeyedVectors
-from gensim.utils import tokenize
 from dictionary_utils import load_dictionaries, DIMS
+from embedding_utils import build_vocab_index, get_vectors_for_prefix, get_vector_case_insensitive, normalize_umlauts
 
 MODEL_PATH = 'german.model'
 model = KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
 
-def normalize_umlauts(text):
-    text = text.replace('ä', 'ae')
-    text = text.replace('ö', 'oe')
-    text = text.replace('ü', 'ue')
-    text = text.replace('ß', 'ss')
-    return text
+vocab_index = build_vocab_index(model)
+dictionaries = load_dictionaries()
 
-raw_dictionaries = load_dictionaries()
-dictionaries = {dim: [t.rstrip('*') for t in raw_dictionaries[dim]] for dim in DIMS}
-
-print("=== Coverage pro Dimension ===")
+print("=== Coverage pro Dimension (mit Prefix-Matching) ===")
 for dim in DIMS:
     terms = dictionaries[dim]
     gefunden = []
     fehlend = []
-    for term in terms:
-        normalized = normalize_umlauts(term.lower())
-        tokens = list(tokenize(normalized, lower=True))
-        if any(tok in model for tok in tokens):
-            gefunden.append(term)
+    for pattern in terms:
+        if pattern.endswith('*'):
+            stem = normalize_umlauts(pattern.rstrip('*'))
+            vectors = get_vectors_for_prefix(stem, model, vocab_index)
+            if vectors:
+                gefunden.append(pattern)
+            else:
+                fehlend.append(pattern)
         else:
-            fehlend.append(term)
+            v = get_vector_case_insensitive(normalize_umlauts(pattern), model, vocab_index)
+            if v is not None:
+                gefunden.append(pattern)
+            else:
+                fehlend.append(pattern)
+
     total = len(terms)
     n_gefunden = len(gefunden)
     prozent = (n_gefunden / total * 100) if total > 0 else 0
