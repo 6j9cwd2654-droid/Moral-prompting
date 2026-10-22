@@ -67,6 +67,10 @@ data['score_loyalty']   = data['prompts_all'].apply(lambda t: score_dict(t, dict
 data['score_authority'] = data['prompts_all'].apply(lambda t: score_dict(t, dict_authority))
 data['score_purity']    = data['prompts_all'].apply(lambda t: score_dict(t, dict_purity))
 
+#Wortzahl pro Person (gleiches Preprocessing wie beim Scoring), fuer die
+#Normalisierung der Trefferzahlen relativ zur Textlaenge in der Analyse
+data['n_words'] = data['prompts_all'].apply(lambda t: len(preprocess_text(t)))
+
 
 #Matches listen
 data['matches_care']      = data['prompts_all'].apply(lambda t: get_matches(t, dict_care))
@@ -77,7 +81,7 @@ data['matches_purity']    = data['prompts_all'].apply(lambda t: get_matches(t, d
 
 
 #Als Excel speichern
-data[['participant_id', 'score_care', 'matches_care',
+data[['participant_id', 'n_words', 'score_care', 'matches_care',
            'score_fairness', 'matches_fairness',
            'score_loyalty', 'matches_loyalty',
            'score_authority', 'matches_authority',

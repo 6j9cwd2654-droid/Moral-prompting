@@ -19,9 +19,15 @@ data_embscore = pd.read_excel('Embedding_Scores.xlsx')
 data_counting= pd.merge(data_countscore, data_MFQ, on='participant_id', how='inner')
 data_embedding = pd.merge(data_embscore, data_MFQ, on='participant_id', how='inner')
 
-# Z-Normalisierung der Häufigkeitsvektoren
+# Rohe Trefferzahlen relativ zur individuellen Wortzahl statt absolut, da sich sonst
+# Textlaenge und tatsaechliche moralische Sprache vermischen (kurze Texte -> wenig Treffer)
 rawscore_cols = ['score_care', 'score_fairness', 'score_loyalty', 'score_authority', 'score_purity']
-for col in rawscore_cols:
+perword_cols = [col + '_perword' for col in rawscore_cols]
+for raw_col, perword_col in zip(rawscore_cols, perword_cols):
+    data_counting[perword_col] = data_counting[raw_col] / data_counting['n_words']
+
+# Z-Normalisierung der (wortzahl-normalisierten) Häufigkeitsvektoren
+for col in perword_cols:
     data_counting[col + '_z'] = stats.zscore(data_counting[col])
 
 # Z-Normalisierung der Embedding-Vektoren (entfernt den dimensionsspezifischen Bias)
@@ -31,25 +37,36 @@ for col in embraw_cols:
 
 # Spaltennamen für die Korrelation
 mfq_cols = ['mfq_care_score', 'mfq_fairness_score', 'mfq_loyalty_score', 'mfq_authority_score', 'mfq_purity_score']
-score_z_cols = ['score_care_z', 'score_fairness_z', 'score_loyalty_z', 'score_authority_z', 'score_purity_z']
+score_z_cols = [col + '_z' for col in perword_cols]
 emb_cols = ['emb_care_z', 'emb_fairness_z', 'emb_loyalty_z', 'emb_authority_z', 'emb_purity_z']
 
 
-# generische Funktion zur Berechnung der Korrelation zwischen zwei Vektoren
-def correlate_vectors(row, score_cols):
+# generische Funktion zur Berechnung der Korrelation zwischen zwei Vektoren.
+# Ist das Rohsignal einer Person in allen Dimensionen identisch (i.d.R. ueberall 0
+# Treffer), hat es selbst keine Varianz. Die z-Transformation wuerde daraus trotzdem
+# einen scheinbar variierenden Vektor erzeugen, der aber nur die unterschiedlichen
+# Wortlisten-Laengen je Dimension widerspiegelt, nicht die Person - die Korrelation
+# waere dann ein reines Transformationsartefakt. Im Fall von Varianz 0 im Rohsignal
+# ist die Korrelation entsprechend nicht definiert (NaN) statt eines solchen Kunstwerts.
+def correlate_vectors(row, raw_cols, score_cols):
+    if np.ptp(row[raw_cols].values.astype(float)) == 0:
+        return np.nan
     mfq_vec   = row[mfq_cols].values.astype(float)
     score_vec = row[score_cols].values.astype(float)
     r, p = stats.pearsonr(mfq_vec, score_vec)
     return r
 
 # Aufruf für counting und embedding
-data_counting['pearson_r'] = data_counting.apply(lambda row: correlate_vectors(row, score_z_cols), axis=1)
-data_embedding['pearson_r'] = data_embedding.apply(lambda row: correlate_vectors(row, emb_cols), axis=1)
+data_counting['pearson_r'] = data_counting.apply(lambda row: correlate_vectors(row, rawscore_cols, score_z_cols), axis=1)
+data_embedding['pearson_r'] = data_embedding.apply(lambda row: correlate_vectors(row, embraw_cols, emb_cols), axis=1)
 
-#Korrelationen mitteln
+#Korrelationen mitteln (NaN-Faelle mit varianzlosem Rohsignal werden dabei automatisch
+#ausgeschlossen, da pandas .mean() NaN ignoriert)
+n_undefined_counting = data_counting['pearson_r'].isna().sum()
 mean_r_counting = data_counting['pearson_r'].mean()
 mean_r_embedding = data_embedding['pearson_r'].mean()
-print(f'Mean Pearson r for counting: {mean_r_counting}')
+print(f'Wordcounting: {n_undefined_counting}/{len(data_counting)} Personen mit varianzlosem Rohsignal (Korrelation nicht definiert)')
+print(f'Mean Pearson r for counting (N={data_counting["pearson_r"].notna().sum()}): {mean_r_counting}')
 print(f'Mean Pearson r for embedding: {mean_r_embedding}')
 
 #Ergebnisse speichern
@@ -60,7 +77,7 @@ data_embedding.to_excel('Embedding_Analysis.xlsx', index=False)
 # PLOT 1: Boxplot der Verteilung der individuellen pearson_r-Werte je Methode
 # ------------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(5.5, 4.5))
-box_data = [data_counting['pearson_r'], data_embedding['pearson_r']]
+box_data = [data_counting['pearson_r'].dropna(), data_embedding['pearson_r'].dropna()]
 #Mean manuell eingeblendet
 ax.boxplot(box_data, showmeans=True, meanline=True,
            meanprops={'color': 'red', 'linestyle': '--'},

@@ -277,6 +277,36 @@ def describe_wordcount_scores(scores_path=SCORE_PATH):
     fig.tight_layout()
     fig.savefig(os.path.join(PLOT_DIR, "06_hits_per_dimension_boxplot.png"), dpi=150)
     plt.close(fig)
+
+
+# ------------------------------------------------------------------
+# 6b. Wordcounting-Ansatz: Treffer relativ zur individuellen Textlaenge
+# ------------------------------------------------------------------
+def describe_wordcount_rates(scores_path=SCORE_PATH):
+    section("6b. Wordcounting-Ansatz: MFD-Treffer relativ zur Textlänge")
+
+    scores = pd.read_excel(scores_path)
+    rate_cols = [c.replace("score_", "rate_") for c in SCORE_COLS]
+    for score_col, rate_col in zip(SCORE_COLS, rate_cols):
+        scores[rate_col] = scores[score_col] / scores["n_words"] * 100
+
+    desc = scores[rate_cols].describe().T
+    desc["median"] = scores[rate_cols].median()
+    print(desc.round(3))
+
+    labels = [c.replace("rate_", "") for c in rate_cols]
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    ax.boxplot([scores[c].dropna() for c in rate_cols])
+    ax.set_xticks(range(1, len(labels) + 1))
+    ax.set_xticklabels(labels, rotation=20)
+    ax.set_ylabel("Treffer pro 100 Wörter")
+    ax.set_title("Verteilung der MFD-Treffer pro Person nach Dimension\n(relativ zur individuellen Wortzahl)")
+    fig.tight_layout()
+    fig.savefig(os.path.join(PLOT_DIR, "06b_hits_per_word_boxplot.png"), dpi=150)
+    plt.close(fig)
+
+
 # ------------------------------------------------------------------
 # Main
 # ------------------------------------------------------------------
@@ -290,6 +320,7 @@ def main():
     describe_prompts(df)
     missing_report(df)
     describe_wordcount_scores()
+    describe_wordcount_rates()
     print(f"\nPlots gespeichert in: ./{PLOT_DIR}/")
 
 
