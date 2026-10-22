@@ -4,5 +4,8 @@ venv/
 # Mac System-Dateien
 .DS_Store
 
+# Python Cache
+__pycache__/
+
 # Embedding Model
 german.model

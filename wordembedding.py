@@ -1,54 +1,38 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from gensim.models import KeyedVectors
-from gensim.utils import tokenize
 from scipy.spatial.distance import cosine
 from dictionary_utils import load_dictionaries, DIMS
+from embedding_utils import build_vocab_index, calculate_dict_centroid, calculate_text_centroid
+
 
 # Modell laden
 MODEL_PATH = 'german.model'
 model = KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
 
+# Vokabular-Index für case-insensitive und Prefix-Lookups bauen
+vocab_index = build_vocab_index(model)
 
 
 # Einlesen
-data = pd.read_excel('Prompts.xlsx') # später mit SoSci-Daten ersetzen
-data = data[['VP', 'Aggregiert']]
+data = pd.read_excel('Daten_bereinigt.xlsx') # später mit SoSci-Daten ersetzen
+data = data[['participant_id', 'prompts_all']]
 
-# Umlaut-Normalisierung
-def normalize_umlauts(text):
-    text = text.replace('ä', 'ae')
-    text = text.replace('ö', 'oe')
-    text = text.replace('ü', 'ue')
-    text = text.replace('ß', 'ss')
-    return text
 
-# Dictionaries bauen (Sternchen entfernen)
-raw_dictionaries = load_dictionaries()
-dictionaries = {dim: [t.rstrip('*') for t in raw_dictionaries[dim]] for dim in DIMS}
+# Dictionaries laden (mit Sternchen-Wildcards damit diese als Prefix erkannt werden)
+dictionaries = load_dictionaries()
 
-# generische Centroid - Berechnung
-def calculate_centroid(items, model):
-    if isinstance(items, str):
-        text = normalize_umlauts(items.lower())
-    elif isinstance (items, list):
-        text = normalize_umlauts(' '.join(items).lower())
-    else:
-        raise ValueError("Input must be a string or a list of strings")
-    tokens = list(tokenize(text, lower=True))
-    vectors = [model[token] for token in tokens if token in model]
-    if not vectors:
-        return None
-    return np.mean(vectors, axis=0)
 
-# Aufruf der Centroid-Berechnung für die Dictionaries
+# Centroid-Berechnung für die Dictionaries
 dict_centroids = {}
 for dim in DIMS:
-    dict_centroids[dim] = calculate_centroid(dictionaries[dim], model)
+    dict_centroids[dim] = calculate_dict_centroid(dictionaries[dim], model, vocab_index)
+    
 
 # Cosine Similarity zwischen Text-Centroid und Dictionary-Centroids
-def score_embedding(text, model, dict_centroids):
-    text_centroid = calculate_centroid(text, model)
+def score_embedding(text, model, dict_centroids, vocab_index):
+    text_centroid = calculate_text_centroid(text, model, vocab_index)
     if text_centroid is None:
         return {dim: None for dim in DIMS}
     scores = {}
@@ -61,7 +45,7 @@ def score_embedding(text, model, dict_centroids):
     return scores
 
 # Scores pro VP berechnen
-results = data['Aggregiert'].apply(lambda t: score_embedding(t, model, dict_centroids))
+results = data['prompts_all'].apply(lambda t: score_embedding(t, model, dict_centroids, vocab_index))
 for dim in DIMS:
     data[f'emb_{dim.lower()}'] = results.apply(lambda x: x[dim])
 

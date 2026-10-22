@@ -6,8 +6,8 @@ from dictionary_utils import load_dictionaries, DIMS
 
 
 # Einlesen
-data = pd.read_excel('Prompts.xlsx')
-data = data[['VP', 'Aggregiert']]
+data = pd.read_excel('Daten_bereinigt.xlsx')
+data = data[['participant_id', 'prompts_all']]
 
 # Dictionaries laden
 dictionaries = load_dictionaries()
@@ -61,23 +61,23 @@ def get_matches(text, dictionary):
     return ', '.join(matches)
 
 #Scores berechnen
-data['score_care']      = data['Aggregiert'].apply(lambda t: score_dict(t, dict_care))
-data['score_fairness']  = data['Aggregiert'].apply(lambda t: score_dict(t, dict_fairness))
-data['score_loyalty']   = data['Aggregiert'].apply(lambda t: score_dict(t, dict_loyalty))
-data['score_authority'] = data['Aggregiert'].apply(lambda t: score_dict(t, dict_authority))
-data['score_purity']    = data['Aggregiert'].apply(lambda t: score_dict(t, dict_purity))
+data['score_care']      = data['prompts_all'].apply(lambda t: score_dict(t, dict_care))
+data['score_fairness']  = data['prompts_all'].apply(lambda t: score_dict(t, dict_fairness))
+data['score_loyalty']   = data['prompts_all'].apply(lambda t: score_dict(t, dict_loyalty))
+data['score_authority'] = data['prompts_all'].apply(lambda t: score_dict(t, dict_authority))
+data['score_purity']    = data['prompts_all'].apply(lambda t: score_dict(t, dict_purity))
 
 
 #Matches listen
-data['matches_care']      = data['Aggregiert'].apply(lambda t: get_matches(t, dict_care))
-data['matches_fairness']  = data['Aggregiert'].apply(lambda t: get_matches(t, dict_fairness))
-data['matches_loyalty']   = data['Aggregiert'].apply(lambda t: get_matches(t, dict_loyalty))
-data['matches_authority'] = data['Aggregiert'].apply(lambda t: get_matches(t, dict_authority))
-data['matches_purity']    = data['Aggregiert'].apply(lambda t: get_matches(t, dict_purity))
+data['matches_care']      = data['prompts_all'].apply(lambda t: get_matches(t, dict_care))
+data['matches_fairness']  = data['prompts_all'].apply(lambda t: get_matches(t, dict_fairness))
+data['matches_loyalty']   = data['prompts_all'].apply(lambda t: get_matches(t, dict_loyalty))
+data['matches_authority'] = data['prompts_all'].apply(lambda t: get_matches(t, dict_authority))
+data['matches_purity']    = data['prompts_all'].apply(lambda t: get_matches(t, dict_purity))
 
 
 #Als Excel speichern
-data[['VP', 'score_care', 'matches_care',
+data[['participant_id', 'score_care', 'matches_care',
            'score_fairness', 'matches_fairness',
            'score_loyalty', 'matches_loyalty',
            'score_authority', 'matches_authority',
