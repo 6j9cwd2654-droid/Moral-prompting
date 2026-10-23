@@ -100,4 +100,58 @@ fig.savefig(os.path.join(PLOT_DIR, '07_pearson_r_verteilung_boxplot.png'), dpi=1
 plt.close(fig)
 
 print(f"\nPlots gespeichert in: ./{PLOT_DIR}/")
- 
+
+# ------------------------------------------------------------------
+# Zusatzanalyse: Effekte je einzelner Dimension (between-subjects statt
+# within-person). Statt pro Person ueber die 5 Dimensionen zu korrelieren
+# (df=3, siehe oben), wird hier pro Dimension EINZELN ueber alle N=161
+# Personen korreliert - deutlich mehr Datenpunkte pro Test, dafuer eine
+# andere Frage ("Ist MFQ-Dimension X populationsweit mit Sprach-Score X
+# assoziiert?" statt "Passt das 5-dimensionale Profil pro Person?").
+# ------------------------------------------------------------------
+def holm_bonferroni(pvalues):
+    pvalues = np.asarray(pvalues, dtype=float)
+    order = np.argsort(pvalues)
+    m = len(pvalues)
+    adjusted = np.empty(m)
+    running_max = 0.0
+    for rank, idx in enumerate(order):
+        val = (m - rank) * pvalues[idx]
+        running_max = max(running_max, val)
+        adjusted[idx] = min(running_max, 1.0)
+    return adjusted
+
+dim_labels = ['Care', 'Fairness', 'Loyalty', 'Authority', 'Purity']
+dimension_rows = []
+for label, perword_col, embraw_col, mfq_col in zip(dim_labels, perword_cols, embraw_cols, mfq_cols):
+    r_wc, p_wc = stats.pearsonr(data_counting[mfq_col], data_counting[perword_col])
+    r_emb, p_emb = stats.pearsonr(data_embedding[mfq_col], data_embedding[embraw_col])
+    dimension_rows.append({'dimension': label, 'r_wordcounting': r_wc, 'p_wordcounting': p_wc,
+                            'r_embedding': r_emb, 'p_embedding': p_emb})
+dimension_effects = pd.DataFrame(dimension_rows)
+
+# Holm-Bonferroni-Korrektur ueber alle 10 Tests (5 Dimensionen x 2 Methoden) gemeinsam
+all_p = np.concatenate([dimension_effects['p_wordcounting'].values, dimension_effects['p_embedding'].values])
+all_p_holm = holm_bonferroni(all_p)
+dimension_effects['p_wordcounting_holm'] = all_p_holm[:5]
+dimension_effects['p_embedding_holm'] = all_p_holm[5:]
+
+print("\nEffekte je einzelner Dimension (between-subjects, N=161, Holm-korrigiert ueber alle 10 Tests):")
+print(dimension_effects.round(4).to_string(index=False))
+dimension_effects.to_excel('Dimension_Effekte.xlsx', index=False)
+
+fig, ax = plt.subplots(figsize=(7, 4.5))
+x = np.arange(len(dim_labels))
+width = 0.35
+ax.bar(x - width / 2, dimension_effects['r_wordcounting'], width, label='Wordcounting')
+ax.bar(x + width / 2, dimension_effects['r_embedding'], width, label='Embedding')
+ax.axhline(0, color='black', linewidth=0.8)
+ax.set_xticks(x)
+ax.set_xticklabels(dim_labels)
+ax.set_ylabel('Pearson r (between-subjects, N=161)')
+ax.set_title('MFQ vs. Sprach-Score je Dimension einzeln betrachtet')
+ax.legend()
+fig.tight_layout()
+fig.savefig(os.path.join(PLOT_DIR, '12_dimension_effekte.png'), dpi=150)
+plt.close(fig)
+print(f"Zusatzanalyse gespeichert: Dimension_Effekte.xlsx, plots/12_dimension_effekte.png")
