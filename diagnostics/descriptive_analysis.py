@@ -11,14 +11,14 @@ Voraussetzungen: pandas, matplotlib, openpyxl
     pip install pandas matplotlib openpyxl
 
 Nutzung:
-    python descriptive_analysis.py
+    python -m diagnostics.descriptive_analysis
 """
 
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import config
+from src import config
 
 # ------------------------------------------------------------------
 # Konfiguration
@@ -321,7 +321,7 @@ def main():
     missing_report(df)
     describe_wordcount_scores()
     describe_wordcount_rates()
-    print(f"\nPlots gespeichert in: ./{PLOT_DIR}/")
+    print(f"\nPlots gespeichert in: {PLOT_DIR}")
 
 
 if __name__ == "__main__":

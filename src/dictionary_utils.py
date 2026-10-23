@@ -1,7 +1,7 @@
 import pandas as pd
 
-import config
-from config import DIMS
+from src import config
+from src.config import DIMS
 
 
 def load_dictionaries(path=config.MFD_PATH):

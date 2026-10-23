@@ -1,5 +1,6 @@
-pandas
-openpyxl
-numpy
-gensim
-scipy
+pandas==3.0.3
+numpy==2.5.0
+scipy==1.18.0
+gensim==4.4.0
+matplotlib==3.11.1
+openpyxl==3.1.5

@@ -6,10 +6,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import stats
 
-import config
-from config import DIMS, MFQ_COLS
-from data_utils import load_mfq
-from stats_utils import holm_bonferroni, profile_correlation
+from src import config
+from src.config import DIMS, MFQ_COLS
+from src.data_utils import load_mfq
+from src.stats_utils import holm_bonferroni, profile_correlation
 
 DIM_LOWER = [d.lower() for d in DIMS]
 RAW_COUNT_COLS = [f"score_{d}" for d in DIM_LOWER]

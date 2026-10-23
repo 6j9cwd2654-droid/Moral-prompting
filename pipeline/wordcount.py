@@ -2,11 +2,11 @@
 
 import pandas as pd
 
-import config
-from config import DIMS
-from data_utils import load_clean_data
-from dictionary_utils import load_dictionaries
-from text_utils import preprocess_text
+from src import config
+from src.config import DIMS
+from src.data_utils import load_clean_data
+from src.dictionary_utils import load_dictionaries
+from src.text_utils import preprocess_text
 
 
 def find_matches(words, dictionary):

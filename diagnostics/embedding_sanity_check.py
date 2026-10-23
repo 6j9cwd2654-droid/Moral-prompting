@@ -17,7 +17,7 @@ Erwartete lokale Module: dictionary_utils.py, embedding_utils.py
 (bereits vorhandene Pipeline-Bausteine, siehe wordcount.py / wordembedding.py)
 
 Nutzung:
-    python Embedding_Sanity_Check.py
+    python -m diagnostics.embedding_sanity_check
 """
 
 import numpy as np
@@ -26,10 +26,10 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import cosine
 from gensim.models import KeyedVectors
 
-import config
-from config import DIMS
-from dictionary_utils import load_dictionaries
-from embedding_utils import build_vocab_index, calculate_dict_centroid
+from src import config
+from src.config import DIMS
+from src.dictionary_utils import load_dictionaries
+from src.embedding_utils import build_vocab_index, calculate_dict_centroid
 
 # ------------------------------------------------------------------
 # Konfiguration
@@ -237,7 +237,7 @@ def main():
     plot_mfd_vs_baseline(mfd_all_sims, baseline["raw"],
                           os.path.join(PLOT_DIR, "08_mfd_vs_random_baseline.png"))
 
-    print(f"\nPlots gespeichert in: ./{PLOT_DIR}/")
+    print(f"\nPlots gespeichert in: {PLOT_DIR}")
 
 
 if __name__ == "__main__":

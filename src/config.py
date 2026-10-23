@@ -3,14 +3,16 @@
 import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
+RESULTS_DIR = ROOT / "results"
 
 # Eingangsdaten
-DATA_CLEAN = ROOT / "Daten_bereinigt.xlsx"
+DATA_CLEAN = DATA_DIR / "Daten_bereinigt.xlsx"
 DATA_CLEAN_SHEET = "Data"
-MFD_PATH = ROOT / "mfd_de_referenz.xlsx"
+MFD_PATH = DATA_DIR / "mfd_de_referenz.xlsx"
 MFD_SHEET = "MFD_DE"
-MODEL_PATH = ROOT / "german.model"
+MODEL_PATH = ROOT / "models" / "german.model"
 
 # Unbereinigte SoSci-Rohdaten liegen bewusst nicht im Repo. Pfad kann per
 # Umgebungsvariable MORAL_PROMPTING_ROHDATEN ueberschrieben werden.
@@ -23,14 +25,14 @@ ROHDATEN_PATH = Path(os.environ.get(
 ROHDATEN_SHEET = "ag4_moral_prompting_01"
 
 # Zwischen- und Endergebnisse
-SCORING_PATH = ROOT / "Scoring_Ergebnisse.xlsx"
-EMBEDDING_SCORES_PATH = ROOT / "Embedding_Scores.xlsx"
-WORDCOUNT_ANALYSIS_PATH = ROOT / "Wordcounting_Analysis.xlsx"
-EMBEDDING_ANALYSIS_PATH = ROOT / "Embedding_Analysis.xlsx"
-DIMENSION_EFFECTS_PATH = ROOT / "Dimension_Effekte.xlsx"
-PERTOPIC_ANALYSIS_PATH = ROOT / "Embedding_PerTopic_Analysis.xlsx"
-BOOTSTRAP_PATH = ROOT / "bootstrap_centroid_separation.xlsx"
-PLOT_DIR = ROOT / "plots"
+SCORING_PATH = RESULTS_DIR / "Scoring_Ergebnisse.xlsx"
+EMBEDDING_SCORES_PATH = RESULTS_DIR / "Embedding_Scores.xlsx"
+WORDCOUNT_ANALYSIS_PATH = RESULTS_DIR / "Wordcounting_Analysis.xlsx"
+EMBEDDING_ANALYSIS_PATH = RESULTS_DIR / "Embedding_Analysis.xlsx"
+DIMENSION_EFFECTS_PATH = RESULTS_DIR / "Dimension_Effekte.xlsx"
+PERTOPIC_ANALYSIS_PATH = RESULTS_DIR / "Embedding_PerTopic_Analysis.xlsx"
+BOOTSTRAP_PATH = RESULTS_DIR / "bootstrap_centroid_separation.xlsx"
+PLOT_DIR = RESULTS_DIR / "plots"
 
 # Moral-Foundations-Dimensionen (Reihenfolge ist Konvention im gesamten Projekt)
 DIMS = ["Care", "Fairness", "Loyalty", "Authority", "Purity"]

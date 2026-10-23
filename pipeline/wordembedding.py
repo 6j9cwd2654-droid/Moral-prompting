@@ -3,11 +3,11 @@
 import pandas as pd
 from gensim.models import KeyedVectors
 
-import config
-from config import DIMS
-from data_utils import load_clean_data
-from dictionary_utils import load_dictionaries
-from embedding_utils import build_vocab_index, calculate_dict_centroid, embedding_scores
+from src import config
+from src.config import DIMS
+from src.data_utils import load_clean_data
+from src.dictionary_utils import load_dictionaries
+from src.embedding_utils import build_vocab_index, calculate_dict_centroid, embedding_scores
 
 
 def main():

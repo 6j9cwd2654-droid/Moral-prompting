@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-import config
+from src import config
 
 
 def load_clean_data(columns=None):

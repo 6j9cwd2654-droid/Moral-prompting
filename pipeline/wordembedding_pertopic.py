@@ -18,13 +18,13 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from scipy import stats
 
-import config
-from config import DIMS, MFQ_COLS, TOPICS
-from data_utils import load_mfq, load_raw_topic_prompts
-from dictionary_utils import load_dictionaries
-from embedding_utils import build_vocab_index, calculate_dict_centroid, embedding_scores
-from stats_utils import fisher_z_average, profile_correlation
-from text_utils import build_topic_text
+from src import config
+from src.config import DIMS, MFQ_COLS, TOPICS
+from src.data_utils import load_mfq, load_raw_topic_prompts
+from src.dictionary_utils import load_dictionaries
+from src.embedding_utils import build_vocab_index, calculate_dict_centroid, embedding_scores
+from src.stats_utils import fisher_z_average, profile_correlation
+from src.text_utils import build_topic_text
 
 
 def plot_comparison(data, has_aggregated):

@@ -2,11 +2,11 @@
 
 from gensim.models import KeyedVectors
 
-import config
-from config import DIMS
-from dictionary_utils import load_dictionaries
-from embedding_utils import build_vocab_index, get_vectors_for_prefix, get_vector_case_insensitive
-from text_utils import normalize_umlauts
+from src import config
+from src.config import DIMS
+from src.dictionary_utils import load_dictionaries
+from src.embedding_utils import build_vocab_index, get_vectors_for_prefix, get_vector_case_insensitive
+from src.text_utils import normalize_umlauts
 
 
 def is_covered(pattern, model, vocab_index):

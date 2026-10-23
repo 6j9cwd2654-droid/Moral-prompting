@@ -3,8 +3,8 @@ import numpy as np
 from gensim.utils import tokenize
 from scipy.spatial.distance import cosine
 
-from config import DIMS
-from text_utils import normalize_umlauts
+from src.config import DIMS
+from src.text_utils import normalize_umlauts
 
 
 def build_vocab_index(model):
