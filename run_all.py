@@ -11,7 +11,8 @@ import sys
 from src import config
 
 PIPELINE = ["pipeline.wordcount", "pipeline.wordembedding", "pipeline.analysis"]
-PERTOPIC = "pipeline.wordembedding_pertopic"
+PERTOPIC = ["pipeline.wordembedding_pertopic", "pipeline.wordcount_pertopic"]  # brauchen die Rohdaten
+RSA = "pipeline.rsa_analysis"  # nutzt die Themen-Ergebnisse, falls vorhanden
 DIAGNOSTICS = ["diagnostics.descriptive_analysis", "diagnostics.embedding_coverage",
                "diagnostics.embedding_sanity_check"]
 
@@ -30,9 +31,12 @@ def main():
         run(module)
 
     if config.ROHDATEN_PATH.exists():
-        run(PERTOPIC)
+        for module in PERTOPIC:
+            run(module)
     else:
-        print(f"\n{PERTOPIC} übersprungen: Rohdaten nicht gefunden ({config.ROHDATEN_PATH})")
+        print(f"\nThemen-Pipelines übersprungen: Rohdaten nicht gefunden ({config.ROHDATEN_PATH})")
+
+    run(RSA)
 
     if args.with_diagnostics:
         for module in DIAGNOSTICS:

@@ -22,10 +22,13 @@ run_all.py     Führt alles in der richtigen Reihenfolge aus
 | `pipeline/wordembedding.py` | Word2Vec: Cosine Similarity zwischen Prompt-Centroid und Dictionary-Centroids → `results/Embedding_Scores.xlsx` |
 | `pipeline/analysis.py` | Profilkorrelation pro Person (Pearson r, gemittelt) für beide Methoden, plus Zusatzanalyse je einzelner Dimension (Holm-korrigiert) |
 | `pipeline/wordembedding_pertopic.py` | Alternative Embedding-Pipeline: Prompts pro Thema einzeln einbetten, Korrelationen per Fisher-Z mitteln. Benötigt die unbereinigten Rohdaten (nicht im Repo) |
+| `pipeline/wordcount_pertopic.py` | Wordcounting je Themenblock → `results/Scoring_PerTopic.xlsx` (Rohdaten nötig) |
+| `pipeline/rsa_analysis.py` | RSA mit Mantel-Test: Ähnlichkeit im MFQ-Profil vs. Ähnlichkeit in der Sprache über alle Personenpaare, gesamt/je Dimension/je Thema, plus Kontrollen → `results/RSA_Ergebnisse.xlsx` |
 | `diagnostics/descriptive_analysis.py` | Stichprobenbeschreibung, MFQ-Verteilungen, Prompt-Länge, Treffer pro Dimension (absolut und pro 100 Wörter) |
 | `diagnostics/embedding_coverage.py` | Welcher Anteil der Wörterbuch-Einträge wird vom Modell gefunden |
 | `diagnostics/embedding_sanity_check.py` | Bootstrap-Test: sind die MFD-Dimensions-Centroide im Embedding-Raum unterscheidbar (vs. Zufalls-Baseline) |
 | `src/config.py` | Alle Pfade, Dimensionen und die Zuordnung der Prompt-Felder zu Themen |
+| `src/rsa_utils.py` | Distanzmatrizen, Mantel-Test (optional partiell) mit Permutationstest |
 | `src/stats_utils.py` | Holm-Bonferroni, Fisher-Z-Mittelung, Profilkorrelation mit NaN-Regel für varianzlose Profile |
 
 ## Benötigte Dateien (nicht im Repository)
@@ -61,6 +64,14 @@ python -m pipeline.wordcount
 python -m pipeline.wordembedding
 python -m pipeline.analysis
 python -m pipeline.wordembedding_pertopic
+python -m pipeline.wordcount_pertopic
+python -m pipeline.rsa_analysis
+```
+
+Tests (einmalig `pip install -r requirements-dev.txt`):
+
+```bash
+python -m pytest tests
 ```
 
 ## Dimensionen
@@ -91,6 +102,14 @@ eigener Centroid gebildet, einzeln korreliert und die drei Korrelationen per Fis
 
 **Dimensionseffekte:** Zusätzlich wird je Dimension einzeln über alle Personen korreliert (between-subjects, N=161 statt
 5 Datenpunkte pro Korrelation), mit Holm-Korrektur über alle Tests.
+
+**RSA (Mantel-Test):** Statt je Person fünf Werte zu korrelieren, wird für alle Personenpaare der Abstand im MFQ-Profil
+mit dem Abstand im Sprach-Profil verglichen (euklidisch, beide Seiten je Dimension z-transformiert). Der Mantel-r ist die
+Korrelation dieser Abstände; die Signifikanz kommt aus einem Permutationstest (10.000 Permutationen, fester Seed), weil die
+Paare nicht unabhängig sind. Hypothese gerichtet (r > 0). Holm-Korrektur über die 18 Basis-Tests. Kontrollen: Niveau
+entfernt, partieller Mantel-Test (Textlänge, Alter, Geschlecht, KI-Nutzung), Ausschluss von Personen ohne Treffer.
+Es gibt keine Einzelwerte pro Person. Bei N=161 hat der Test hohe Power erst ab Korrelationen von etwa .3 je Dimension
+(Simulation: Power .35 bei .2, .86 bei .3).
 
 ## Hinweise
 

@@ -6,19 +6,7 @@ from src import config
 from src.config import DIMS
 from src.data_utils import load_clean_data
 from src.dictionary_utils import load_dictionaries
-from src.text_utils import preprocess_text
-
-
-def find_matches(words, dictionary):
-    """Alle Wörter, die auf einen Wörterbuch-Eintrag passen (Wildcard '*' = Präfix-Match)."""
-    matches = []
-    for pattern in dictionary:
-        if pattern.endswith("*"):
-            stem = pattern.rstrip("*")
-            matches += [w for w in words if w.startswith(stem)]
-        else:
-            matches += [w for w in words if w == pattern]
-    return matches
+from src.text_utils import find_matches, preprocess_text
 
 
 def score_person(text, dictionaries):

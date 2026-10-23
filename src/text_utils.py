@@ -22,3 +22,15 @@ def build_topic_text(row, cols):
     """Fügt die vorhandenen Prompt-Felder eines Themas zusammen; None, wenn alle leer sind."""
     parts = [str(row[c]).strip() for c in cols if pd.notna(row[c]) and str(row[c]).strip()]
     return " ".join(parts) if parts else None
+
+
+def find_matches(words, dictionary):
+    """Alle Wörter, die auf einen Wörterbuch-Eintrag passen (Wildcard '*' = Präfix-Match)."""
+    matches = []
+    for pattern in dictionary:
+        if pattern.endswith("*"):
+            stem = pattern.rstrip("*")
+            matches += [w for w in words if w.startswith(stem)]
+        else:
+            matches += [w for w in words if w == pattern]
+    return matches

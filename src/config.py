@@ -31,6 +31,8 @@ WORDCOUNT_ANALYSIS_PATH = RESULTS_DIR / "Wordcounting_Analysis.xlsx"
 EMBEDDING_ANALYSIS_PATH = RESULTS_DIR / "Embedding_Analysis.xlsx"
 DIMENSION_EFFECTS_PATH = RESULTS_DIR / "Dimension_Effekte.xlsx"
 PERTOPIC_ANALYSIS_PATH = RESULTS_DIR / "Embedding_PerTopic_Analysis.xlsx"
+SCORING_PERTOPIC_PATH = RESULTS_DIR / "Scoring_PerTopic.xlsx"
+RSA_PATH = RESULTS_DIR / "RSA_Ergebnisse.xlsx"
 BOOTSTRAP_PATH = RESULTS_DIR / "bootstrap_centroid_separation.xlsx"
 PLOT_DIR = RESULTS_DIR / "plots"
 
@@ -45,3 +47,7 @@ TOPICS = {
     "gesellschaftsdienst": ["P201_01", "P201_02", "P201_03"],
     "sterbehilfe": ["P301_01", "P301_02", "P301_03"],
 }
+
+# RSA (Mantel-Test)
+N_PERMUTATIONS = 10000
+RANDOM_SEED = 42
