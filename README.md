@@ -24,11 +24,14 @@ run_all.py     Führt alles in der richtigen Reihenfolge aus
 | `pipeline/wordembedding_pertopic.py` | Alternative Embedding-Pipeline: Prompts pro Thema einzeln einbetten, Korrelationen per Fisher-Z mitteln. Benötigt die unbereinigten Rohdaten (nicht im Repo) |
 | `pipeline/wordcount_pertopic.py` | Wordcounting je Themenblock → `results/Scoring_PerTopic.xlsx` (Rohdaten nötig) |
 | `pipeline/rsa_analysis.py` | RSA mit Mantel-Test: Ähnlichkeit im MFQ-Profil vs. Ähnlichkeit in der Sprache über alle Personenpaare, gesamt/je Dimension/je Thema, plus Kontrollen → `results/RSA_Ergebnisse.xlsx` |
+| `pipeline/llm_judge_run.py` | LLM-as-a-Judge: Texte (Person, Thema oder Einzelprompt) mit einer Rubrik bewerten lassen, Rohantworten speichern, Lauf setzt nach Abbruch fort. Bewerter: `fake` (Test), `ollama` (lokal), `anthropic` (API, nur mit `--confirm-data-protection`) |
+| `pipeline/llm_validation.py` | Instrumentvalidierung: Verlässlichkeit der Läufe (ICC), Zusammenhang mit Wordcounting/Embedding, Hypothesentest mit den Bewerter-Scores |
 | `diagnostics/descriptive_analysis.py` | Stichprobenbeschreibung, MFQ-Verteilungen, Prompt-Länge, Treffer pro Dimension (absolut und pro 100 Wörter) |
 | `diagnostics/embedding_coverage.py` | Welcher Anteil der Wörterbuch-Einträge wird vom Modell gefunden |
 | `diagnostics/embedding_sanity_check.py` | Bootstrap-Test: sind die MFD-Dimensions-Centroide im Embedding-Raum unterscheidbar (vs. Zufalls-Baseline) |
 | `src/config.py` | Alle Pfade, Dimensionen und die Zuordnung der Prompt-Felder zu Themen |
 | `src/rsa_utils.py` | Distanzmatrizen, Mantel-Test (optional partiell) mit Permutationstest |
+| `src/llm_judge.py` | Rubrik (Entwurf), JSON-Schema, Bewerter-Klassen mit Schutzschaltern |
 | `src/stats_utils.py` | Holm-Bonferroni, Fisher-Z-Mittelung, Profilkorrelation mit NaN-Regel für varianzlose Profile |
 
 ## Benötigte Dateien (nicht im Repository)
@@ -110,6 +113,16 @@ Paare nicht unabhängig sind. Hypothese gerichtet (r > 0). Holm-Korrektur über 
 entfernt, partieller Mantel-Test (Textlänge, Alter, Geschlecht, KI-Nutzung), Ausschluss von Personen ohne Treffer.
 Es gibt keine Einzelwerte pro Person. Bei N=161 hat der Test hohe Power erst ab Korrelationen von etwa .3 je Dimension
 (Simulation: Power .35 bei .2, .86 bei .3).
+
+**LLM-as-a-Judge (Instrumentvalidierung):** Ein Sprachmodell bewertet jeden Text nach einer festen Rubrik (fünf
+Dimensionen, Skala 0 bis 5, JSON-Ausgabe). Jeder Text wird mehrfach bewertet (die aktuellen Modelle erlauben keine
+feste Temperature), ausgewertet wird der Median, die Stabilität über die Läufe wird als ICC berichtet. Die Rubrik wird an
+einer festen Entwicklungsteilmenge (30 Personen, `--subset dev`) verfeinert und dann eingefroren, die Validierung läuft
+auf dem Rest (`--subset holdout`). Jede Rubrikänderung ändert den Fingerabdruck, Ergebnisse verschiedener Rubriken werden
+nie vermischt. **Datenschutz:** Der API-Bewerter sendet Teilnehmertexte an einen externen Dienst und startet nur mit
+`--confirm-data-protection`. Rohantworten (`results/llm_judge/`) enthalten Teilnehmertexte und sind bewusst nicht im Repo.
+Die Rubrik ist ein Entwurf. Ohne menschliche Bewertung einer Teilstichprobe zeigt die Validierung nur, dass automatische
+Methoden untereinander übereinstimmen.
 
 ## Hinweise
 

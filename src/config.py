@@ -33,6 +33,8 @@ DIMENSION_EFFECTS_PATH = RESULTS_DIR / "Dimension_Effekte.xlsx"
 PERTOPIC_ANALYSIS_PATH = RESULTS_DIR / "Embedding_PerTopic_Analysis.xlsx"
 SCORING_PERTOPIC_PATH = RESULTS_DIR / "Scoring_PerTopic.xlsx"
 RSA_PATH = RESULTS_DIR / "RSA_Ergebnisse.xlsx"
+LLM_DIR = RESULTS_DIR / "llm_judge"  # Rohantworten der Bewerter, nicht im Repo
+LLM_VALIDATION_PATH = RESULTS_DIR / "LLM_Validierung.xlsx"
 BOOTSTRAP_PATH = RESULTS_DIR / "bootstrap_centroid_separation.xlsx"
 PLOT_DIR = RESULTS_DIR / "plots"
 
@@ -51,3 +53,6 @@ TOPICS = {
 # RSA (Mantel-Test)
 N_PERMUTATIONS = 10000
 RANDOM_SEED = 42
+
+# LLM-as-a-Judge
+DEV_SUBSET_SIZE = 30  # Personen, an denen die Rubrik entwickelt wird; die Validierung läuft auf dem Rest

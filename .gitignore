@@ -9,3 +9,5 @@ __pycache__/
 
 # Embedding Model
 german.model
+# Rohantworten der LLM-Bewerter (enthalten Teilnehmertexte), erst nach Klärung des Datenschutzes versionieren
+results/llm_judge/

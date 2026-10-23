@@ -1,0 +1,2 @@
+# Nur für den API-Bewerter, erst nach geklärtem Datenschutz installieren
+anthropic
