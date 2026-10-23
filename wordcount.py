@@ -1,88 +1,50 @@
+"""Wordcounting: zählt MFD-Treffer pro Person und Dimension -> Scoring_Ergebnisse.xlsx."""
 
 import pandas as pd
-import re
-from dictionary_utils import load_dictionaries, DIMS
+
+import config
+from config import DIMS
+from data_utils import load_clean_data
+from dictionary_utils import load_dictionaries
+from text_utils import preprocess_text
 
 
-
-# Einlesen
-data = pd.read_excel('Daten_bereinigt.xlsx')
-data = data[['participant_id', 'prompts_all']]
-
-# Dictionaries laden
-dictionaries = load_dictionaries()
-dict_care      = dictionaries['Care']
-dict_fairness  = dictionaries['Fairness']
-dict_loyalty   = dictionaries['Loyalty']
-dict_authority = dictionaries['Authority']
-dict_purity    = dictionaries['Purity']
-
-#Alle Umlaute in den Dictionaries durch ae, oe, ue ersetzen
-def normalize_umlaute(text):
-    text = text.replace('ä', 'ae')
-    text = text.replace('ö', 'oe')
-    text = text.replace('ü', 'ue')
-    text = text.replace('ß', 'ss')
-    return text
-
-# Preprocessing
-def preprocess_text(text):
-    text = text.lower()
-    text = normalize_umlaute(text)
-    text = re.sub(r'[^\w\s]', '', text)  
-    return text.split()
-
-# Generische Scoring-Funktion
-def score_dict(text, dictionary):
-    if pd.isna(text):
-        raise ValueError("Text is null")
-    words = preprocess_text(text)
-    count = 0
-    for pattern in dictionary:
-        if pattern.endswith('*'):
-            stem = pattern.rstrip('*')
-            count += sum(1 for w in words if w.startswith(stem))
-        else:
-            count += sum(1 for w in words if w == pattern)
-    return count
-
-#generische Matching-Funktion
-def get_matches(text, dictionary):
-    if pd.isna(text):
-        return ''
-    words = preprocess_text(text)
+def find_matches(words, dictionary):
+    """Alle Wörter, die auf einen Wörterbuch-Eintrag passen (Wildcard '*' = Präfix-Match)."""
     matches = []
     for pattern in dictionary:
-        if pattern.endswith('*'):
-            stem = pattern.rstrip('*')
+        if pattern.endswith("*"):
+            stem = pattern.rstrip("*")
             matches += [w for w in words if w.startswith(stem)]
         else:
             matches += [w for w in words if w == pattern]
-    return ', '.join(matches)
-
-#Scores berechnen
-data['score_care']      = data['prompts_all'].apply(lambda t: score_dict(t, dict_care))
-data['score_fairness']  = data['prompts_all'].apply(lambda t: score_dict(t, dict_fairness))
-data['score_loyalty']   = data['prompts_all'].apply(lambda t: score_dict(t, dict_loyalty))
-data['score_authority'] = data['prompts_all'].apply(lambda t: score_dict(t, dict_authority))
-data['score_purity']    = data['prompts_all'].apply(lambda t: score_dict(t, dict_purity))
-
-#Wortzahl pro Person (gleiches Preprocessing wie beim Scoring), fuer die
-#Normalisierung der Trefferzahlen relativ zur Textlaenge in der Analyse
-data['n_words'] = data['prompts_all'].apply(lambda t: len(preprocess_text(t)))
+    return matches
 
 
-#Matches listen
-data['matches_care']      = data['prompts_all'].apply(lambda t: get_matches(t, dict_care))
-data['matches_fairness']  = data['prompts_all'].apply(lambda t: get_matches(t, dict_fairness))
-data['matches_loyalty']   = data['prompts_all'].apply(lambda t: get_matches(t, dict_loyalty))
-data['matches_authority'] = data['prompts_all'].apply(lambda t: get_matches(t, dict_authority))
-data['matches_purity']    = data['prompts_all'].apply(lambda t: get_matches(t, dict_purity))
+def score_person(text, dictionaries):
+    if pd.isna(text):
+        raise ValueError("Text is null")
+    words = preprocess_text(text)
+    row = {"n_words": len(words)}
+    for dim in DIMS:
+        matches = find_matches(words, dictionaries[dim])
+        row[f"score_{dim.lower()}"] = len(matches)
+        row[f"matches_{dim.lower()}"] = ", ".join(matches)
+    return row
 
 
-#Als Excel speichern
-data[['participant_id', 'n_words', 'score_care', 'matches_care',
-           'score_fairness', 'matches_fairness',
-           'score_loyalty', 'matches_loyalty',
-           'score_authority', 'matches_authority',
-           'score_purity', 'matches_purity']].to_excel('Scoring_Ergebnisse.xlsx', index=False)
+def main():
+    data = load_clean_data(["participant_id", "prompts_all"])
+    dictionaries = load_dictionaries()
+
+    scored = pd.DataFrame([score_person(t, dictionaries) for t in data["prompts_all"]])
+    result = pd.concat([data[["participant_id"]], scored], axis=1)
+
+    column_order = ["participant_id", "n_words"]
+    for dim in DIMS:
+        column_order += [f"score_{dim.lower()}", f"matches_{dim.lower()}"]
+    result[column_order].to_excel(config.SCORING_PATH, index=False)
+
+
+if __name__ == "__main__":
+    main()

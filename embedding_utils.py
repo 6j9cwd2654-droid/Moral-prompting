@@ -1,6 +1,10 @@
 import bisect
 import numpy as np
 from gensim.utils import tokenize
+from scipy.spatial.distance import cosine
+
+from config import DIMS
+from text_utils import normalize_umlauts
 
 
 def build_vocab_index(model):
@@ -30,14 +34,6 @@ def get_vectors_for_prefix(stem, model, vocab_index):
     start = bisect.bisect_left(sorted_lower_keys, stem)
     end = bisect.bisect_left(sorted_lower_keys, stem + '\uffff')
     return [model[original] for _, original in sorted_pairs[start:end]]
-
-
-def normalize_umlauts(text):
-    text = text.replace('ä', 'ae')
-    text = text.replace('ö', 'oe')
-    text = text.replace('ü', 'ue')
-    text = text.replace('ß', 'ss')
-    return text
 
 
 def calculate_dict_centroid(patterns, model, vocab_index):
@@ -70,3 +66,17 @@ def calculate_text_centroid(text, model, vocab_index):
     if not vectors:
         return None
     return np.mean(vectors, axis=0)
+
+
+def embedding_scores(text, model, dict_centroids, vocab_index):
+    """Cosine-Similarity eines Texts zu den Dimensions-Centroiden (NaN, wenn nicht berechenbar)."""
+    nan_scores = {dim: np.nan for dim in DIMS}
+    if text is None:
+        return nan_scores
+    text_centroid = calculate_text_centroid(text, model, vocab_index)
+    if text_centroid is None:
+        return nan_scores
+    return {
+        dim: (1 - cosine(text_centroid, dict_centroids[dim])) if dict_centroids[dim] is not None else np.nan
+        for dim in DIMS
+    }

@@ -18,18 +18,18 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import config
+
 # ------------------------------------------------------------------
 # Konfiguration
 # ------------------------------------------------------------------
-DATA_PATH = "Daten_bereinigt.xlsx"   # ggf. Pfad anpassen
-SHEET_NAME = "Data"
-SCORE_PATH = "Scoring_Ergebnisse.xlsx"  # neben DATA_PATH ergänzen
-SCORE_COLS = ["score_care", "score_fairness", "score_loyalty",
-              "score_authority", "score_purity"]
-PLOT_DIR = "plots"
+DATA_PATH = config.DATA_CLEAN
+SHEET_NAME = config.DATA_CLEAN_SHEET
+SCORE_PATH = config.SCORING_PATH
+SCORE_COLS = [f"score_{d.lower()}" for d in config.DIMS]
+PLOT_DIR = config.PLOT_DIR
 
-MFQ_DIMENSIONS = ["mfq_care_score", "mfq_fairness_score", "mfq_loyalty_score",
-                  "mfq_authority_score", "mfq_purity_score"]
+MFQ_DIMENSIONS = config.MFQ_COLS
 
 # Value-Label-Mappings aus dem SoSci-Codebook (siehe Codebook-Sheet der Datei)
 GENDER_LABELS = {1: "weiblich", 2: "männlich", 3: "divers", 4: "keine Angabe"}

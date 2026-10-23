@@ -14,10 +14,10 @@ interpretiert werden:
 
 Voraussetzungen: gensim, numpy, pandas, scipy, matplotlib
 Erwartete lokale Module: dictionary_utils.py, embedding_utils.py
-(bereits vorhandene Pipeline-Bausteine, siehe Word_count.py / wordembedding.py)
+(bereits vorhandene Pipeline-Bausteine, siehe wordcount.py / wordembedding.py)
 
 Nutzung:
-    python centroid_sanity_check.py
+    python Embedding_Sanity_Check.py
 """
 
 import numpy as np
@@ -26,14 +26,16 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import cosine
 from gensim.models import KeyedVectors
 
-from dictionary_utils import load_dictionaries, DIMS
+import config
+from config import DIMS
+from dictionary_utils import load_dictionaries
 from embedding_utils import build_vocab_index, calculate_dict_centroid
 
 # ------------------------------------------------------------------
 # Konfiguration
 # ------------------------------------------------------------------
-MODEL_PATH = "german.model"
-PLOT_DIR = "plots"
+MODEL_PATH = config.MODEL_PATH
+PLOT_DIR = config.PLOT_DIR
 N_BOOTSTRAP = 1000
 N_RANDOM_GROUPS = 5          # Anzahl zufälliger Wortgruppen pro Iteration
 VOCAB_LIMIT = 50000          # nur die häufigsten N Wörter für Zufallsgruppen zulassen
@@ -205,7 +207,7 @@ def main():
     os.makedirs(PLOT_DIR, exist_ok=True)
 
     section("Modell und Wortlisten laden")
-    model = KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+    model = KeyedVectors.load_word2vec_format(str(MODEL_PATH), binary=True)
     vocab_index = build_vocab_index(model)
     dictionaries = load_dictionaries()
 
@@ -222,7 +224,7 @@ def main():
     section("2. Bootstrap: Trennschärfe der MFD-Dimensionspaare")
     separation_df, mfd_all_sims = bootstrap_centroid_separation(dictionaries, model, vocab_index)
     print(separation_df.round(3))
-    separation_df.to_excel(os.path.join(PLOT_DIR, "..", "bootstrap_centroid_separation.xlsx"), index=False)
+    separation_df.to_excel(config.BOOTSTRAP_PATH, index=False)
 
     section("3. Zufalls-Baseline: inhaltlich unverbundene Wortgruppen")
     baseline = random_baseline_similarities(model, vocab_index, dictionaries)
